@@ -1,0 +1,27 @@
+{
+  "name": "mangaka",
+  "version": "0.1.0",
+  "description": "A script to download and bind Manga pages into an ePub",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "yarn build && node bin/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsdom": "^16.2.14",
+    "@types/node": "^17.0.24",
+    "typescript": "^4.6.3"
+  },
+  "type": "module",
+  "dependencies": {
+    "commander": "^9.2.0",
+    "epub-gen": "^0.1.0",
+    "puppeteer": "^13.5.2",
+    "puppeteer-extra": "^3.2.3",
+    "puppeteer-extra-plugin-stealth": "^2.9.0"
+  },
+  "bin": "./bin/index.js"
+}
