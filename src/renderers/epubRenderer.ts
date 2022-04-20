@@ -38,7 +38,7 @@ export class EPubRenderer implements Renderer {
 
     const epubOptions = {
       output: join(this.outputPath, `${this.title}.epub`),
-      customOpfTemplatePath: join(__dirname, '..', '..', 'templates', 'content.opf.ejs'),
+      customOpfTemplatePath: join(__dirname, 'content.opf.ejs'),
       title: this.title,
       author: this.author,
       content: chapters,

@@ -201,11 +201,9 @@
                         data: fileList.map(f => `<p><img src="${(0, url_1.pathToFileURL)(f)}" /></p>`).join('\n'),
                     };
                 });
-                // const __filename = fileURLToPath(import.meta.url);
-                // const __dirname = dirname(__filename);
                 const epubOptions = {
                     output: (0, path_1.join)(this.outputPath, `${this.title}.epub`),
-                    customOpfTemplatePath: (0, path_1.join)(__dirname, '..', '..', 'templates', 'content.opf.ejs'),
+                    customOpfTemplatePath: (0, path_1.join)(__dirname, 'content.opf.ejs'),
                     title: this.title,
                     author: this.author,
                     content: chapters,
@@ -242,8 +240,8 @@
         const job = {
             title: options.title,
             author: options.author || 'Manga Author',
-            coverPath: options.cover,
-            outputPath: path.resolve(options.output || '.'),
+            coverPath: options.cover ? path.resolve(options.cover) : undefined,
+            outputPath: options.output ? path.resolve(options.output) : '',
             source: {
                 type: 'manganato',
                 mangaStub: options.mangaStub,
@@ -257,7 +255,7 @@
             await renderer.setup();
             console.log('Downloading files...');
             const chapterFiles = await source.fetch();
-            console.log('Writing ebook to', job.outputPath);
+            console.log('Writing ebook to', job.outputPath || '.');
             await renderer.render(chapterFiles);
             console.log('Cleaning up temp directories...');
             await source.cleanup();

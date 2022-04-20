@@ -44,7 +44,7 @@ const runJob = async () => {
 
   const chapterFiles = await source.fetch();
 
-  console.log('Writing ebook to', job.outputPath);
+  console.log('Writing ebook to', job.outputPath || '.');
 
   await renderer.render(chapterFiles);
 
