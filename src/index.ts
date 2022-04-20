@@ -2,13 +2,13 @@ import * as path from 'path';
 
 import { Command } from 'commander';
 
-import { ManganatoSource, ManganatoSourceData } from './sources/manganato.js';
-import { JobFile } from './jobFile.js';
-import { EPubRenderer } from './renderers/epubRenderer.js';
+import { ManganatoSource, ManganatoSourceData } from './sources/manganato';
+import { JobFile } from './jobFile';
+import { EPubRenderer } from './renderers/epubRenderer';
 
 const program = new Command();
 
-program.name('Mangaka').description('A script to download Manga pages and bind them into an ePub').version('0.1');
+program.name('Mangaka').description('A script to download Manga pages and bind them into an ePub.').version('0.1');
 
 program.requiredOption('-m, --manga-stub <stub>', 'The Manganato URL stub for the manga series');
 program.requiredOption('-s, --chapter-stubs <stubs...>', 'A list of chapter stubs to download');
@@ -21,13 +21,11 @@ program.parse();
 
 const options = program.opts();
 
-console.log('options', options);
-
 const job: JobFile = {
   title: options.title,
   author: options.author || 'Manga Author',
-  coverPath: options.cover,
-  outputPath: path.resolve(options.output || '.'),
+  coverPath: options.cover ? path.resolve(options.cover) : undefined,
+  outputPath: options.output ? path.resolve(options.output) : '',
   source: {
     type: 'manganato',
     mangaStub: options.mangaStub,
@@ -35,25 +33,25 @@ const job: JobFile = {
   },
 };
 
-console.log('job', job);
+const runJob = async () => {
+  const source = new ManganatoSource(job.source as ManganatoSourceData);
+  const renderer = new EPubRenderer(job);
 
-const source = new ManganatoSource(job.source as ManganatoSourceData);
-const renderer = new EPubRenderer(job);
+  await source.setup();
+  await renderer.setup();
 
-await source.setup();
-await renderer.setup();
+  console.log('Downloading files...');
 
-console.log('Downloading files...');
+  const chapterFiles = await source.fetch();
 
-const chapterFiles = await source.fetch();
+  console.log('Writing ebook to', job.outputPath);
 
-console.log('Writing ebook to', job.outputPath);
+  await renderer.render(chapterFiles);
 
-await renderer.render(chapterFiles);
+  console.log('Cleaning up temp directories...');
 
-console.log('Cleaning up temp directories...');
+  await source.cleanup();
+  await renderer.cleanup();
+};
 
-await source.cleanup();
-await renderer.cleanup();
-
-console.log('Done!');
+runJob().then(() => console.log('Done!'));

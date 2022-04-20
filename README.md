@@ -1,12 +1,20 @@
 # mangaka
 
-A simple script for downloading manga and converting it into ePub ebooks. Warning: this is not a polished application.
+A simple script for downloading manga and converting it into ePub ebooks. Warning: this is not a polished application. Use at your own risk.
+
+Additionally, don't download manga you don't own legally.
 
 ## Usage
 
-Right now, there is not a functional binary. You'll need a Node environment locally. You'll also need `yarn`.
+You'll need a functional Node environment, including NPM. To install:
+
+`npm install -g mangaka`
 
 Invoke the script like this:
+
+`mangaka -m <stub> -c <stub> -t <title>`
+
+Alternatively, if you don't want to install the package, and you have Yarn installed, you can just clone the repo and run the script directly:
 
 `yarn start -m <stub> -c <stub> -t <title>`
 
@@ -23,7 +31,7 @@ The script can handle multiple chapter stubs at once. Full usage:
 ```
 Usage: Mangaka [options]
 
-A script to download Manga pages and bind them into an ePub
+A script to download Manga pages and bind them into an ePub.
 
 Options:
   -V, --version                   output the version number
@@ -35,3 +43,11 @@ Options:
   -c, --cover <path>              The fully-resolved local path to a cover image
   -h, --help                      display help for command
 ```
+
+## Development
+
+To build the project, run this command:
+
+`yarn build`
+
+You can run the project locally with `yarn start`; there is also a VS Code launch file provided that will start a debugger.

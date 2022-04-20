@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin());
 
-import { MangaSource } from './source.js';
+import { MangaSource } from './source';
 
 export interface ManganatoSourceData {
   type: 'manganato';

@@ -1,11 +1,11 @@
 import { mkdir } from 'fs/promises';
-import { pathToFileURL, fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { pathToFileURL } from 'url';
+import { join } from 'path';
 
 import Epub from 'epub-gen';
 
-import { Renderer } from './renderer.js';
-import { JobFile } from '../jobFile.js';
+import { Renderer } from './renderer';
+import { JobFile } from '../jobFile';
 
 export class EPubRenderer implements Renderer {
   outputPath: string;
@@ -35,9 +35,6 @@ export class EPubRenderer implements Renderer {
         data: fileList.map(f => `<p><img src="${pathToFileURL(f)}" /></p>`).join('\n'),
       };
     });
-
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
 
     const epubOptions = {
       output: join(this.outputPath, `${this.title}.epub`),
