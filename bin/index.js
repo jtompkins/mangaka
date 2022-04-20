@@ -228,7 +228,7 @@
         Object.defineProperty(exports, "__esModule", { value: true });
         path = __importStar(path);
         const program = new commander_1.Command();
-        program.name('Mangaka').description('A script to download Manga pages and bind them into an ePub.').version('0.1');
+        program.name('Tankobon').description('A script to download Manga pages and bind them into an ePub.').version('0.1');
         program.requiredOption('-m, --manga-stub <stub>', 'The Manganato URL stub for the manga series');
         program.requiredOption('-s, --chapter-stubs <stubs...>', 'A list of chapter stubs to download');
         program.requiredOption('-t, --title <title>', 'The title of the output ePub');

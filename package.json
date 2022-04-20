@@ -1,5 +1,5 @@
 {
-  "name": "mangaka",
+  "name": "tankobon",
   "version": "0.1.0",
   "description": "A script to download and bind Manga pages into an ePub",
   "main": "src/index.ts",

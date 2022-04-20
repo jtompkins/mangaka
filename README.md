@@ -1,4 +1,4 @@
-# mangaka
+# Tankobon
 
 A simple script for downloading manga and converting it into ePub ebooks. Warning: this is not a polished application. Use at your own risk.
 
@@ -8,11 +8,11 @@ Additionally, don't download manga you don't own legally.
 
 You'll need a functional Node environment, including NPM. To install:
 
-`npm install -g mangaka`
+`npm install -g tankobon`
 
 Invoke the script like this:
 
-`mangaka -m <stub> -c <stub> -t <title>`
+`tankobon -m <stub> -c <stub> -t <title>`
 
 Alternatively, if you don't want to install the package, and you have Yarn installed, you can just clone the repo and run the script directly:
 
@@ -29,7 +29,7 @@ https://readmanganato.com/manga-em981495/chapter-59
 The script can handle multiple chapter stubs at once. Full usage:
 
 ```
-Usage: Mangaka [options]
+Usage: Tankobon [options]
 
 A script to download Manga pages and bind them into an ePub.
 
