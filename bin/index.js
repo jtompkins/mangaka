@@ -10,9 +10,6 @@
         Object.defineProperty(exports, "__cjsModule", { value: true });
         Object.defineProperty(exports, "default", { value: (name) => resolve(name) });
     });
-    var __importDefault = (this && this.__importDefault) || function (mod) {
-        return (mod && mod.__esModule) ? mod : { "default": mod };
-    };
     var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
         if (k2 === undefined) k2 = k;
         var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -36,70 +33,22 @@
         __setModuleDefault(result, mod);
         return result;
     };
-    define("cloudflareBypass", ["require", "exports", "puppeteer-extra", "puppeteer-extra-plugin-stealth"], function (require, exports, puppeteer_extra_1, puppeteer_extra_plugin_stealth_1) {
-        "use strict";
-        Object.defineProperty(exports, "__esModule", { value: true });
-        puppeteer_extra_1 = __importDefault(puppeteer_extra_1);
-        puppeteer_extra_plugin_stealth_1 = __importDefault(puppeteer_extra_plugin_stealth_1);
-        // const puppeteer = require('puppeteer-extra');
-        // const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-        puppeteer_extra_1.default.use((0, puppeteer_extra_plugin_stealth_1.default)());
-        const cloudflareBypass = async function (config) {
-            const { url } = config;
-            // Create the browser instance
-            const browser = await puppeteer_extra_1.default.launch({
-                args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                headless: false,
-            });
-            // Create a new page instance
-            const target = await browser.newPage();
-            // Visit target url and read out the body
-            await target.goto(url);
-            const pageBody = await target.evaluate(() => document.querySelector('*').outerHTML);
-            // Validate if we hit the cloudflare UAM page
-            if (pageBody.includes('cf-im-under-attack')) {
-                // Wait for the cf_clearance cookie
-                const clearance = new Promise(resolve => {
-                    target.on('request', async (request) => {
-                        const { cookies } = await target._client.send('Network.getAllCookies');
-                        let cf_clearance = cookies.findIndex(c => c.name === 'cf_clearance');
-                        if (cf_clearance > -1) {
-                            cf_clearance = cookies[cf_clearance];
-                            resolve(cookies);
-                        }
-                    });
-                });
-                const taskCheck = new Promise(resolve => {
-                    setTimeout(() => resolve(true), 10000);
-                });
-                // It should not take longer then 5 seconds to get the clearance cookie,
-                // we create a Promise.race to give it a max timer of 10 seconds just to be sure
-                let result = await Promise.race([clearance, taskCheck]);
-                if (result && result.findIndex(c => c.name === 'cf_clearance')) {
-                    result.useragent = await browser.userAgent();
-                    await target.close();
-                    await browser.close();
-                    return result;
-                }
-                return false;
-            }
-            return false;
-        };
-        exports.default = cloudflareBypass;
-    });
+    var __importDefault = (this && this.__importDefault) || function (mod) {
+        return (mod && mod.__esModule) ? mod : { "default": mod };
+    };
     define("sources/source", ["require", "exports"], function (require, exports) {
         "use strict";
         Object.defineProperty(exports, "__esModule", { value: true });
     });
-    define("sources/manganato", ["require", "exports", "fs/promises", "path", "os", "puppeteer-extra", "puppeteer-extra-plugin-stealth"], function (require, exports, promises_1, path, os, puppeteer_extra_2, puppeteer_extra_plugin_stealth_2) {
+    define("sources/manganato", ["require", "exports", "fs/promises", "path", "os", "puppeteer-extra", "puppeteer-extra-plugin-stealth"], function (require, exports, promises_1, path, os, puppeteer_extra_1, puppeteer_extra_plugin_stealth_1) {
         "use strict";
         Object.defineProperty(exports, "__esModule", { value: true });
         exports.ManganatoSource = void 0;
         path = __importStar(path);
         os = __importStar(os);
-        puppeteer_extra_2 = __importDefault(puppeteer_extra_2);
-        puppeteer_extra_plugin_stealth_2 = __importDefault(puppeteer_extra_plugin_stealth_2);
-        puppeteer_extra_2.default.use((0, puppeteer_extra_plugin_stealth_2.default)());
+        puppeteer_extra_1 = __importDefault(puppeteer_extra_1);
+        puppeteer_extra_plugin_stealth_1 = __importDefault(puppeteer_extra_plugin_stealth_1);
+        puppeteer_extra_1.default.use((0, puppeteer_extra_plugin_stealth_1.default)());
         class ManganatoSource {
             tmpRoot;
             mangaStub;
@@ -120,7 +69,7 @@
                 }
             }
             async fetch() {
-                const browser = await puppeteer_extra_2.default.launch();
+                const browser = await puppeteer_extra_1.default.launch();
                 const page = await browser.newPage();
                 await page.setViewport({ width: 2560, height: 1440 });
                 let chapters = new Array();
