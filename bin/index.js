@@ -152,7 +152,6 @@
                 });
                 const epubOptions = {
                     output: (0, path_1.join)(this.outputPath, `${this.title}.epub`),
-                    customOpfTemplatePath: (0, path_1.join)(__dirname, 'content.opf.ejs'),
                     title: this.title,
                     author: this.author,
                     content: chapters,

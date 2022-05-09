@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc-bundle ./tsconfig.json --outFile ./bin/index.js && sed  -i '1i #! /usr/bin/env node' ./bin/index.js && chmod +x ./bin/index.js && cp ./src/renderers/content.opf.ejs ./bin/content.opf.ejs",
+    "build": "tsc-bundle ./tsconfig.json --outFile ./bin/index.js && sed  -i '1i #! /usr/bin/env node' ./bin/index.js && chmod +x ./bin/index.js",
     "start": "tsc && node dist/index.js"
   },
   "author": "",
