@@ -40,6 +40,18 @@ const job: JobFile = {
   },
 };
 
+// const job: JobFile = {
+//   title: "test",
+//   author: "test",
+//   coverPath: undefined,
+//   outputPath: "/home/josh",
+//   source: {
+//     type: 'mangasee',
+//     mangaStub: 'Spy-X-Family',
+//     chapterStubs: ['chapter-1']
+//   }
+// }
+
 const runJob = async () => {
   let source: MangaSource;
 

@@ -36,7 +36,7 @@ export class MangaseeSource implements MangaSource {
   }
 
   async fetch(): Promise<Array<Array<string>>> {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     await page.setViewport({ width: 2560, height: 1440 });
 
@@ -49,6 +49,8 @@ export class MangaseeSource implements MangaSource {
 
       await page.goto(chapterUrl);
       await page.waitForSelector(imageSelector, { visible: true });
+
+      page.addStyleTag({ content: "nav.navbar { visibility: hidden; }" });
 
       const pageImages = await page.$$(imageSelector);
 
