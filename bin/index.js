@@ -172,39 +172,128 @@
         }
         exports.EPubRenderer = EPubRenderer;
     });
-    define("index", ["require", "exports", "path", "commander", "sources/manganato", "renderers/epubRenderer"], function (require, exports, path, commander_1, manganato_1, epubRenderer_1) {
+    define("sources/mangasee", ["require", "exports", "fs/promises", "path", "os", "puppeteer-extra", "puppeteer-extra-plugin-stealth"], function (require, exports, promises_3, path, os, puppeteer_extra_2, puppeteer_extra_plugin_stealth_2) {
+        "use strict";
+        Object.defineProperty(exports, "__esModule", { value: true });
+        exports.MangaseeSource = void 0;
+        path = __importStar(path);
+        os = __importStar(os);
+        puppeteer_extra_2 = __importDefault(puppeteer_extra_2);
+        puppeteer_extra_plugin_stealth_2 = __importDefault(puppeteer_extra_plugin_stealth_2);
+        puppeteer_extra_2.default.use((0, puppeteer_extra_plugin_stealth_2.default)());
+        class MangaseeSource {
+            tmpRoot;
+            mangaStub;
+            chapterStubs;
+            constructor(sourceData) {
+                this.tmpRoot = path.join(os.tmpdir(), `mangafiles-${sourceData.mangaStub}`);
+                this.mangaStub = sourceData.mangaStub;
+                this.chapterStubs = sourceData.chapterStubs;
+            }
+            async setup() {
+                try {
+                    console.log('Creating temp directory at ', this.tmpRoot);
+                    await (0, promises_3.mkdir)(this.tmpRoot);
+                    return true;
+                }
+                catch {
+                    return false;
+                }
+            }
+            async fetch() {
+                const browser = await puppeteer_extra_2.default.launch();
+                const page = await browser.newPage();
+                await page.setViewport({ width: 2560, height: 1440 });
+                let chapters = new Array();
+                for (const chapterStub of this.chapterStubs) {
+                    const chapterUrl = `https://mangasee123.com/read-online/${this.mangaStub}-${chapterStub}.html`;
+                    const imageSelector = `img[src*="${this.mangaStub}"]`;
+                    let chapterFiles = [];
+                    await page.goto(chapterUrl);
+                    await page.waitForSelector(imageSelector, { visible: true });
+                    const pageImages = await page.$$(imageSelector);
+                    console.log(`Found ${pageImages.length} images. Downloading...`);
+                    for (const img of pageImages) {
+                        const boundingBox = await img.boundingBox();
+                        if (!boundingBox) {
+                            continue;
+                        }
+                        const src = await img.evaluate(imgNode => imgNode.getAttribute('src'));
+                        const imgName = src?.split('/').at(-1)?.split('.')[0];
+                        const imgIndex = Number.parseInt(imgName?.split('-')[1]);
+                        const imgPath = path.join(this.tmpRoot, `${chapterStub}-${imgIndex}.png`);
+                        try {
+                            console.log(`Downloading image from ${src} to ${imgPath}`);
+                            await img.screenshot({ path: imgPath });
+                            chapterFiles[imgIndex] = imgPath;
+                        }
+                        catch (err) {
+                            console.log('Download failed', src, err);
+                        }
+                    }
+                    chapters.push(chapterFiles);
+                }
+                await browser.close();
+                return chapters;
+            }
+            async cleanup() {
+                try {
+                    await (0, promises_3.rm)(this.tmpRoot, { recursive: true });
+                    return true;
+                }
+                catch {
+                    return false;
+                }
+            }
+        }
+        exports.MangaseeSource = MangaseeSource;
+    });
+    define("index", ["require", "exports", "path", "process", "commander", "sources/manganato", "renderers/epubRenderer", "sources/mangasee"], function (require, exports, path, process_1, commander_1, manganato_1, epubRenderer_1, mangasee_1) {
         "use strict";
         Object.defineProperty(exports, "__esModule", { value: true });
         path = __importStar(path);
         const program = new commander_1.Command();
         program.name('Tankobon').description('A script to download Manga pages and bind them into an ePub.').version('0.1');
         program.requiredOption('-m, --manga-stub <stub>', 'The Manganato URL stub for the manga series');
-        program.requiredOption('-s, --chapter-stubs <stubs...>', 'A list of chapter stubs to download');
+        program.requiredOption('-c, --chapter-stubs <stubs...>', 'A list of chapter stubs to download');
         program.requiredOption('-t, --title <title>', 'The title of the output ePub');
         program.option('-o, --output <path>', 'The fully-resolved local path to write the output ePub');
         program.option('-a, --author <author>', 'The author of the output ePub');
-        program.option('-c, --cover <path>', 'The fully-resolved local path to a cover image');
+        program.option('-i, --cover <path>', 'The fully-resolved local path to a cover image');
+        program.option('-s, --source <source>', 'The source of the manga images. Available options: manganato, mangasee', 'mangasee');
         program.parse();
         const options = program.opts();
+        if (!['mangasee', 'manganato'].includes(options.source)) {
+            console.log("Please enter a valid source.");
+            (0, process_1.exit)(1);
+        }
         const job = {
             title: options.title,
             author: options.author || 'Manga Author',
             coverPath: options.cover ? path.resolve(options.cover) : undefined,
             outputPath: options.output ? path.resolve(options.output) : '',
             source: {
-                type: 'manganato',
+                type: options.source,
                 mangaStub: options.mangaStub,
                 chapterStubs: options.chapterStubs,
             },
         };
         const runJob = async () => {
-            const source = new manganato_1.ManganatoSource(job.source);
+            let source;
+            switch (options.type) {
+                case 'manganato':
+                    source = new manganato_1.ManganatoSource(job.source);
+                    break;
+                case 'mangasee':
+                default:
+                    source = new mangasee_1.MangaseeSource(job.source);
+            }
             const renderer = new epubRenderer_1.EPubRenderer(job);
             await source.setup();
             await renderer.setup();
-            console.log('Downloading files...');
+            console.log(`Downloading files with source ${options.source}...`);
             const chapterFiles = await source.fetch();
-            console.log('Writing ebook to', job.outputPath || '.');
+            console.log(`Writing ebook to ${job.outputPath || 'the current directory'}...`);
             await renderer.render(chapterFiles);
             console.log('Cleaning up temp directories...');
             await source.cleanup();

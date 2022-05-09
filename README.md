@@ -18,7 +18,17 @@ Alternatively, if you don't want to install the package, and you have Yarn insta
 
 `yarn start -m <stub> -c <stub> -t <title>`
 
-The only supported manga source right now is Manganato. You'll need "stubs" for both the manga and chapter(s) you want to download. Get these from the URL:
+There are two supported manga sources: Mangasee and Manganato. If you don't specify a source, the script will use Mangasee. For either one, you'll need "stubs" for both the manga and chapter(s) you want to download. You can get those from the URL:
+
+**Mangasee**
+
+```
+https://mangasee123.com/read-online/Spy-X-Family-chapter-56.html
+                                    ^^^^^^^^^^^^ ^^^^^^^^^^
+                                    Manga        Chapter
+```
+
+**Manganato**
 
 ```
 https://readmanganato.com/manga-em981495/chapter-59
@@ -36,11 +46,12 @@ A script to download Manga pages and bind them into an ePub.
 Options:
   -V, --version                   output the version number
   -m, --manga-stub <stub>         The Manganato URL stub for the manga series
-  -s, --chapter-stubs <stubs...>  A list of chapter stubs to download
+  -c, --chapter-stubs <stubs...>  A list of chapter stubs to download
   -t, --title <title>             The title of the output ePub
   -o, --output <path>             The fully-resolved local path to write the output ePub
   -a, --author <author>           The author of the output ePub
-  -c, --cover <path>              The fully-resolved local path to a cover image
+  -i, --cover <path>              The fully-resolved local path to a cover image
+  -s, --source <source>           The source of the manga images. Available options: manganato, mangasee
   -h, --help                      display help for command
 ```
 
