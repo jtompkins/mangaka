@@ -200,7 +200,7 @@
                 }
             }
             async fetch() {
-                const browser = await puppeteer_extra_2.default.launch({ headless: false });
+                const browser = await puppeteer_extra_2.default.launch();
                 const page = await browser.newPage();
                 await page.setViewport({ width: 2560, height: 1440 });
                 let chapters = new Array();
