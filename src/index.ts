@@ -9,7 +9,7 @@ import { MangaseeSource, MangaseeSourceData } from './sources/mangasee';
 
 const program = new Command();
 
-program.name('Tankobon').description('A script to download Manga pages and bind them into an ePub.').version('1.0.0-alpha.3');
+program.name('Tankobon').description('A script to download Manga pages and bind them into an ePub.').version('1.0.0-alpha.4');
 
 program.requiredOption('-m, --manga-stub <stub>', 'The Manganato URL stub for the manga series');
 program.requiredOption('-c, --chapter-stubs <stubs...>', 'A list of chapter stubs to download');
