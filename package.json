@@ -8,8 +8,8 @@
     "build": "tsc-bundle ./tsconfig.json --outFile ./bin/index.js && sed  -i '1i #! /usr/bin/env node' ./bin/index.js && chmod +x ./bin/index.js",
     "start": "tsc && node dist/index.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Josh Tompkins",
+  "license": "MIT",
   "devDependencies": {
     "@types/jsdom": "^16.2.14",
     "@types/node": "^17.0.24",
