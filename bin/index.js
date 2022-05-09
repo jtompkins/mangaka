@@ -200,7 +200,7 @@
                 }
             }
             async fetch() {
-                const browser = await puppeteer_extra_2.default.launch();
+                const browser = await puppeteer_extra_2.default.launch({ headless: false });
                 const page = await browser.newPage();
                 await page.setViewport({ width: 2560, height: 1440 });
                 let chapters = new Array();
@@ -210,6 +210,7 @@
                     let chapterFiles = [];
                     await page.goto(chapterUrl);
                     await page.waitForSelector(imageSelector, { visible: true });
+                    page.addStyleTag({ content: "nav.navbar { visibility: hidden; }" });
                     const pageImages = await page.$$(imageSelector);
                     console.log(`Found ${pageImages.length} images. Downloading...`);
                     for (const img of pageImages) {
@@ -277,6 +278,17 @@
                 chapterStubs: options.chapterStubs,
             },
         };
+        // const job: JobFile = {
+        //   title: "test",
+        //   author: "test",
+        //   coverPath: undefined,
+        //   outputPath: "/home/josh",
+        //   source: {
+        //     type: 'mangasee',
+        //     mangaStub: 'Spy-X-Family',
+        //     chapterStubs: ['chapter-1']
+        //   }
+        // }
         const runJob = async () => {
             let source;
             switch (options.type) {
