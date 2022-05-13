@@ -42,6 +42,7 @@ export class EPubRenderer implements Renderer {
       author: this.author,
       content: chapters,
       cover: this.coverPath || undefined,
+      css: "html { margin: 0px; padding: 0px; border: 0px; } body { margin: 0px; padding: 0px; border: 0px; } p { margin: 0px; padding: 0px; border: 0px; height: 100%; width: 100%; } img { max-height: 100%; max-width: 100%; }"
     };
 
     try {

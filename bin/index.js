@@ -156,6 +156,7 @@
                     author: this.author,
                     content: chapters,
                     cover: this.coverPath || undefined,
+                    css: "html { margin: 0px; padding: 0px; border: 0px; } body { margin: 0px; padding: 0px; border: 0px; } p { margin: 0px; padding: 0px; border: 0px; height: 100%; width: 100%; } img { max-height: 100%; max-width: 100%; }"
                 };
                 try {
                     await new epub_gen_1.default(epubOptions).promise;
@@ -219,7 +220,7 @@
                             continue;
                         }
                         const src = await img.evaluate(imgNode => imgNode.getAttribute('src'));
-                        const imgName = src?.split('/').at(-1)?.split('.')[0];
+                        const imgName = src?.split('/').at(-1)?.split('.png')[0];
                         const imgIndex = Number.parseInt(imgName?.split('-')[1]);
                         const imgPath = path.join(this.tmpRoot, `${chapterStub}-${imgIndex}.png`);
                         try {
@@ -253,7 +254,7 @@
         Object.defineProperty(exports, "__esModule", { value: true });
         path = __importStar(path);
         const program = new commander_1.Command();
-        program.name('Tankobon').description('A script to download Manga pages and bind them into an ePub.').version('1.0.0-alpha.4');
+        program.name('Tankobon').description('A script to download Manga pages and bind them into an ePub.').version('1.0.0-alpha.5');
         program.requiredOption('-m, --manga-stub <stub>', 'The Manganato URL stub for the manga series');
         program.requiredOption('-c, --chapter-stubs <stubs...>', 'A list of chapter stubs to download');
         program.requiredOption('-t, --title <title>', 'The title of the output ePub');

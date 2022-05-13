@@ -65,7 +65,7 @@ export class MangaseeSource implements MangaSource {
 
         const src = await img.evaluate(imgNode => imgNode.getAttribute('src'));
 
-        const imgName = src?.split('/').at(-1)?.split('.')[0];
+        const imgName = src?.split('/').at(-1)?.split('.png')[0];
         const imgIndex = Number.parseInt(imgName?.split('-')[1] as string);
         const imgPath = path.join(this.tmpRoot, `${chapterStub}-${imgIndex}.png`);
 
