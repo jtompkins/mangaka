@@ -1,9 +1,8 @@
 interface JobFile {
-  title: string;
-  author: string;
-  coverPath: string | undefined;
-  source: unknown;
-  outputPath: string;
+  stub: string;
+  first: number | undefined;
+  last: number | undefined;
+  exclusive: boolean;
 }
 
 export type { JobFile };

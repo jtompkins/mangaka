@@ -1,7 +1,5 @@
-interface MangaSource {
-  setup(): Promise<boolean>;
-  fetch(): Promise<Array<string[]>>;
-  cleanup(): Promise<boolean>;
-}
+import { JobFile } from "../jobFile";
+
+type MangaSource = (job: JobFile) => Promise<void>;
 
 export type { MangaSource };

@@ -1,97 +1,150 @@
-import { mkdir, rm } from 'fs/promises';
+import { mkdir, access } from 'fs/promises';
 import * as path from 'path';
-import * as os from 'os';
+import * as process from 'process';
+
+import cliProgress from 'cli-progress';
+import colors from 'ansi-colors';
 
 import puppeteer from 'puppeteer-extra';
+
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin());
 
-import { MangaSource } from './source';
+import AdblockerPlugin from 'puppeteer-extra-plugin-adblocker';
+puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 
-export interface MangaseeSourceData {
-  type: 'mangasee';
-  mangaStub: string;
-  chapterStubs: string[];
-}
+import { JobFile } from '../jobFile';
 
-export class MangaseeSource implements MangaSource {
-  tmpRoot: string;
-  mangaStub: string;
-  chapterStubs: string[];
+const findChaptersToDownload = (chapters: Array<number>, job: JobFile) => {
+  let startIndex = 0;
+  let endIndex = chapters.length;
 
-  constructor(sourceData: MangaseeSourceData) {
-    this.tmpRoot = path.join(os.tmpdir(), `mangafiles-${sourceData.mangaStub}`);
-    this.mangaStub = sourceData.mangaStub;
-    this.chapterStubs = sourceData.chapterStubs;
-  }
+  if (job.first) {
+    let first = chapters.indexOf(job.first);
 
-  async setup(): Promise<boolean> {
-    try {
-      console.log('Creating temp directory at ', this.tmpRoot);
-      await mkdir(this.tmpRoot);
-      return true;
-    } catch {
-      return false;
+    if (first !== -1) {
+      startIndex = first;
     }
   }
 
-  async fetch(): Promise<Array<Array<string>>> {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setViewport({ width: 2560, height: 1440 });
+  if (job.last) {
+    let last = chapters.indexOf(job.last);
 
-    let chapters = new Array<Array<string>>();
+    if (last !== -1) {
+      endIndex = !job.exclusive ? last + 1 : last;
+    }
+  }
 
-    for (const chapterStub of this.chapterStubs) {
-      const chapterUrl = `https://mangasee123.com/read-online/${this.mangaStub}-${chapterStub}.html`;
-      const imageSelector = `img[src*="${this.mangaStub}"]`;
-      let chapterFiles: Array<string> = [];
+  return chapters.slice(startIndex, endIndex);
+};
 
-      await page.goto(chapterUrl);
-      await page.waitForSelector(imageSelector, { visible: true });
+const fetch = async (job: JobFile): Promise<void> => {
+  const CWD = process.cwd();
 
-      page.addStyleTag({ content: "nav.navbar { visibility: hidden; }" });
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 2560, height: 1440 });
 
-      const pageImages = await page.$$(imageSelector);
+  // go to the manga page and find the real name of the manga
+  const mangaUrl = `https://mangasee123.com/manga/${job.stub}`;
 
-      console.log(`Found ${pageImages.length} images. Downloading...`)
+  await page.goto(mangaUrl);
+  await page.waitForSelector('h1', { visible: true });
 
-      for (const img of pageImages) {
-        const boundingBox = await img.boundingBox();
+  const mangaTitle = await page.$eval('h1', el => el.innerText);
+  const mangaPath = path.join(CWD, mangaTitle);
 
-        if (!boundingBox) {
-          continue;
-        }
+  await mkdir(mangaPath, { recursive: true });
 
-        const src = await img.evaluate(imgNode => imgNode.getAttribute('src'));
+  // detect chapters
+  // first, we need to expand the list of chapters
+  const expandChaptersElement = await page.$('.ShowAllChapters');
 
-        const imgName = src?.split('/').at(-1)?.split('.png')[0];
-        const imgIndex = Number.parseInt(imgName?.split('-')[1] as string);
-        const imgPath = path.join(this.tmpRoot, `${chapterStub}-${imgIndex}.png`);
+  if (expandChaptersElement) {
+    await expandChaptersElement.click();
+  }
 
-        try {
-          console.log(`Downloading image from ${src} to ${imgPath}`);
-          await img.screenshot({ path: imgPath });
-          chapterFiles[imgIndex] = imgPath;
-        } catch (err) {
-          console.log('Download failed', src, err);
-        }
+  // now find all the chapter list items and capture their number and URLs
+  let chapters = new Array<number>();
+
+  const chapterLinks = await page.$$('a.ChapterLink');
+
+  for (const chapter of chapterLinks) {
+    const rawChapterName = await chapter.$eval('span', el => el.innerText);
+    const chapterNumber = Number.parseFloat(rawChapterName!.split(' ')[1]);
+
+    chapters.push(chapterNumber);
+  }
+
+  chapters.sort((a, b) => a - b);
+
+  const chaptersToDownload = findChaptersToDownload(chapters, job);
+
+  console.log(`Downloading ${chaptersToDownload.length} chapters of ${mangaTitle}...`);
+
+  const multibar = new cliProgress.MultiBar(
+    {
+      clearOnComplete: false,
+      hideCursor: true,
+      format: '{bar} | {filename} | {value}/{total}',
+    },
+    cliProgress.Presets.shades_classic,
+  );
+
+  const chapterBar = multibar.create(chaptersToDownload.length, 0, { filename: 'N/A' });
+
+  for (const chapter of chaptersToDownload) {
+    chapterBar.update({ filename: `Chapter ${chapter}` });
+
+    const chapterPath = path.join(mangaPath, `Chapter ${chapter}`);
+
+    await mkdir(chapterPath, { recursive: true });
+
+    const chapterUrl = `https://mangasee123.com/read-online/${job.stub}-chapter-${chapter}.html`;
+
+    const imageSelector = `img[src*="${job.stub}"]`;
+
+    await page.goto(chapterUrl);
+    await page.waitForSelector(imageSelector, { visible: true });
+
+    page.addStyleTag({ content: 'nav.navbar { visibility: hidden; }' });
+
+    const pageImages = await page.$$(imageSelector);
+
+    const pagesBar = multibar.create(pageImages.length, 0, { filename: 'N/A' });
+
+    for (const img of pageImages) {
+      const boundingBox = await img.boundingBox();
+
+      if (!boundingBox) {
+        pagesBar.increment();
+        continue;
       }
 
-      chapters.push(chapterFiles);
+      const src = await img.evaluate(imgNode => imgNode.getAttribute('src'));
+
+      const imgName = src?.split('/').at(-1)?.split('.png')[0];
+      const imgIndex = Number.parseInt(imgName?.split('-')[1] as string);
+      const imgPath = path.join(chapterPath, `${imgIndex}.png`);
+
+      pagesBar.update({ filename: `Page ${imgIndex}` });
+
+      try {
+        // console.log(`Downloading image from ${src} to ${imgPath}`);
+        await img.screenshot({ path: imgPath });
+        pagesBar.increment();
+      } catch (err) {
+        console.log('Download failed', src, err);
+      }
     }
 
-    await browser.close();
-
-    return chapters;
+    pagesBar.update({ filename: `Chapter ${chapter}` });
+    pagesBar.stop();
+    chapterBar.increment();
   }
 
-  async cleanup(): Promise<boolean> {
-    try {
-      await rm(this.tmpRoot, { recursive: true });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-}
+  multibar.stop();
+  await browser.close();
+};
+
+export { fetch };
